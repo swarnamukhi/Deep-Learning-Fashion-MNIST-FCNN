@@ -846,26 +846,218 @@ ReLU
 ```
 
 ---
-
 # Why Do We Need Batch Normalization?
 
-During training, the outputs of one layer continuously change because the weights are updated after every batch.
+During training, the neural network processes the dataset one **mini-batch** at a time.
 
-As a result, the next layer keeps receiving inputs with different distributions.
+Suppose our model uses
 
-This makes training unstable.
+- Image Size = 28 × 28
+- Flatten = 784 features
+- Batch Size = 32
 
-Batch Normalization stabilizes these values.
+Then each mini-batch entering the first Dense layer has the shape
 
-Benefits include
+```
+(32, 784)
+```
 
+During the forward pass, these 32 samples pass through the first Dense layer.
+
+```
+Batch (32,784)
+
+↓
+
+Dense(128)
+
+↓
+
+Output Shape = (32,128)
+```
+
+After the forward pass, the model computes the loss and performs backpropagation.
+
+As a result, the **trainable parameters of the entire network are updated**, including
+
+- Dense layer weights
+- Dense layer biases
+- Batch Normalization Gamma (γ)
+- Batch Normalization Beta (β)
+
+When the next mini-batch arrives, the network now has **updated weights**.
+
+Therefore, even if the new batch contains similar images, the outputs (also called **activations**) produced by the Dense layer will be different because the weights have changed.
+
+Without Batch Normalization, every layer would continuously receive inputs with changing distributions throughout training, making learning less stable.
+
+Batch Normalization reduces this variation by normalizing the activations of **each mini-batch** before passing them to the next layer.
+
+This results in
+
+- More stable training
 - Faster convergence
-- Stable gradients
-- Higher learning rates
-- Better generalization
-- Reduced overfitting
+- Better gradient flow
+- Improved generalization
 
 ---
+
+# Internal Working of Batch Normalization
+
+Consider the first hidden layer.
+
+After the Dense layer, the output shape is
+
+```
+(32,128)
+```
+
+which means
+
+- 32 samples
+- 128 neuron outputs (features)
+
+Batch Normalization now processes these activations.
+
+## Step 1: Compute Batch Statistics
+
+For the current mini-batch, Batch Normalization calculates
+
+- Mean (μ)
+- Variance (σ²)
+
+using only the activations of the current batch.
+
+For example
+
+```
+Batch 1
+
+↓
+
+Mean = 18
+
+Variance = 49
+```
+
+These values are computed independently for each of the 128 features.
+
+---
+
+## Step 2: Normalize
+
+Each activation is normalized using the batch statistics.
+
+After normalization
+
+```
+Mean ≈ 0
+
+Standard Deviation ≈ 1
+```
+
+This ensures that the activations are on a consistent scale before being passed to the next layer.
+
+---
+
+## Step 3: Learn the Best Scale and Shift
+
+Instead of always forcing the output to have Mean = 0 and Standard Deviation = 1, Batch Normalization introduces two learnable parameters.
+
+- Gamma (γ) → controls the scale
+- Beta (β) → controls the shift
+
+The final output becomes
+
+```
+Output
+
+=
+
+γ × Normalized Value
+
++
+
+β
+```
+
+Both Gamma and Beta are updated during backpropagation just like the weights of the Dense layers.
+
+---
+
+## What Happens for the Next Mini-Batch?
+
+After Batch 1 finishes,
+
+```
+Forward Pass
+
+↓
+
+Loss Calculation
+
+↓
+
+Backpropagation
+
+↓
+
+Update All Trainable Parameters
+```
+
+Now Batch 2 enters the network.
+
+Because the weights have changed, the Dense layer produces different activations.
+
+For example
+
+```
+Batch 1
+
+↓
+
+Dense Output
+
+Mean = 18
+```
+
+After the weight update
+
+```
+Batch 2
+
+↓
+
+Dense Output
+
+Mean = 42
+```
+
+Batch Normalization does **not** reuse the statistics from Batch 1.
+
+Instead, it computes **new Mean and Variance** for Batch 2 and normalizes that batch independently.
+
+This process repeats for every mini-batch during training.
+
+---
+
+# Important Note
+
+A common misconception is that Batch Normalization uses the statistics from the previous batch to normalize the next batch.
+
+This is **not correct**.
+
+During training,
+
+- Batch 1 is normalized using Batch 1 statistics.
+- Batch 2 is normalized using Batch 2 statistics.
+- Batch 3 is normalized using Batch 3 statistics.
+
+Each mini-batch is normalized independently.
+
+The moving mean and moving variance maintained by Batch Normalization are **not used during training**. They are stored and later used during **inference (prediction/testing)**, where batch statistics may not be available.
+
+
 
 # Internal Working
 
