@@ -452,6 +452,621 @@ As training progresses, the weights inside the Dense layers are updated so that 
 ---
 
 # Key Takeaways
+---
+
+# Activation Functions
+
+A Dense layer computes a weighted sum of its inputs.
+
+```
+z = w₁x₁ + w₂x₂ + ... + wₙxₙ + b
+```
+
+However, this weighted sum alone is **not sufficient** to solve complex problems.
+
+If we stack multiple Dense layers without any activation function, the entire neural network behaves like a single linear equation, regardless of how many layers we add.
+
+To overcome this limitation, we apply an **activation function** after each Dense layer.
+
+The activation function introduces **non-linearity**, allowing the neural network to learn complex relationships within the data.
+
+In this project, we use two activation functions:
+
+- ReLU (Hidden Layers)
+- Softmax (Output Layer)
+
+---
+
+# ReLU (Rectified Linear Unit)
+
+The Rectified Linear Unit (ReLU) is the most widely used activation function in deep learning.
+
+It is defined as
+
+```
+ReLU(x) = max(0, x)
+```
+
+This means:
+
+```
+Input < 0
+
+↓
+
+Output = 0
+```
+
+```
+Input > 0
+
+↓
+
+Output = Input
+```
+
+Examples
+
+| Input | Output |
+|--------|---------|
+| -5 | 0 |
+| -2 | 0 |
+| 0 | 0 |
+| 3 | 3 |
+| 8 | 8 |
+
+---
+
+# Why Do We Need ReLU?
+
+Suppose a Dense layer produces
+
+```
+[-12, -3, 5, 10]
+```
+
+After applying ReLU
+
+```
+[0, 0, 5, 10]
+```
+
+All negative values become zero.
+
+Positive values remain unchanged.
+
+This introduces **non-linearity**, enabling the neural network to learn complex decision boundaries instead of only linear relationships.
+
+Without ReLU, even a deep network with many Dense layers behaves like a single linear transformation.
+
+---
+
+# Why Does Removing Negative Values Introduce Non-Linearity?
+
+This is one of the most common interview questions.
+
+Consider the graph of the function
+
+```
+y = x
+```
+
+This is a straight line.
+
+A straight line is called a **linear function**.
+
+Now consider ReLU.
+
+```
+For x < 0
+
+Output = 0
+
+For x > 0
+
+Output = x
+```
+
+The graph now has a bend at zero.
+
+```
+Negative Side
+
+──────────────
+
+0
+
+/
+
+/
+
+/
+
+Positive Side
+```
+
+Because the graph is no longer a single straight line, ReLU is called a **non-linear activation function**.
+
+This non-linearity enables deep neural networks to model highly complex real-world data.
+
+---
+
+# Why Is ReLU Used Instead of Sigmoid?
+
+ReLU offers several advantages.
+
+- Faster computation
+- Simpler mathematical operation
+- Reduces the vanishing gradient problem
+- Speeds up training
+- Produces sparse activations
+
+For these reasons, ReLU has become the default activation function for hidden layers.
+
+---
+
+# Softmax Activation
+
+The final Dense layer produces **raw scores**, also called **logits**.
+
+Example
+
+```
+[3.2, 0.5, 1.7, 4.1, 2.6, 1.0, 0.4, 0.8, 2.1, 3.5]
+```
+
+These values are **not probabilities**.
+
+Some values may even be negative.
+
+Therefore, we apply the Softmax activation.
+
+```
+Dense(10)
+
+↓
+
+Softmax
+
+↓
+
+Probability Distribution
+```
+
+Softmax converts the logits into probabilities between
+
+```
+0
+
+and
+
+1
+```
+
+The probabilities always satisfy
+
+```
+Total Sum = 1
+```
+
+Example
+
+```
+[0.01,
+0.03,
+0.05,
+0.48,
+0.08,
+0.02,
+0.01,
+0.01,
+0.06,
+0.25]
+```
+
+Notice
+
+```
+All values
+
+≥ 0
+
+and
+
+Total = 1
+```
+
+The class with the highest probability becomes the predicted class.
+
+---
+
+# Why Softmax?
+
+Our Fashion MNIST dataset has
+
+```
+10 classes
+```
+
+The model must decide
+
+```
+Which one is most likely?
+```
+
+Softmax converts arbitrary output scores into a valid probability distribution, making it easy to interpret the model's prediction.
+
+---
+
+# Parameter Calculation
+
+Understanding parameter calculation is extremely important for interviews.
+
+TensorFlow displays the number of trainable parameters in the model summary.
+
+Let's calculate them manually.
+
+---
+
+## Dense Layer (128)
+
+Input Features
+
+```
+784
+```
+
+Neurons
+
+```
+128
+```
+
+Each neuron has
+
+- 784 weights
+- 1 bias
+
+Total
+
+```
+(784 × 128) + 128
+
+=
+
+100352 + 128
+
+=
+
+100480
+```
+
+---
+
+## Dense Layer (64)
+
+Previous Layer
+
+```
+128 outputs
+```
+
+Current Layer
+
+```
+64 neurons
+```
+
+Parameters
+
+```
+(128 × 64) + 64
+
+=
+
+8192 + 64
+
+=
+
+8256
+```
+
+---
+
+## Output Layer
+
+Input
+
+```
+64
+```
+
+Output Neurons
+
+```
+10
+```
+
+Parameters
+
+```
+(64 × 10) + 10
+
+=
+
+640 + 10
+
+=
+
+650
+```
+
+---
+
+# Total Trainable Parameters
+
+```
+100480
+
++
+
+8256
+
++
+
+650
+
+=
+
+109386
+```
+
+This exactly matches the TensorFlow model summary.
+
+---
+
+# Batch Normalization
+
+Batch Normalization is one of the most important improvements in deep learning.
+
+It normalizes the outputs of a layer before they are passed to the activation function.
+
+Architecture
+
+```
+Dense
+
+↓
+
+Batch Normalization
+
+↓
+
+ReLU
+```
+
+---
+
+# Why Do We Need Batch Normalization?
+
+During training, the outputs of one layer continuously change because the weights are updated after every batch.
+
+As a result, the next layer keeps receiving inputs with different distributions.
+
+This makes training unstable.
+
+Batch Normalization stabilizes these values.
+
+Benefits include
+
+- Faster convergence
+- Stable gradients
+- Higher learning rates
+- Better generalization
+- Reduced overfitting
+
+---
+
+# Internal Working
+
+For every mini-batch, Batch Normalization performs
+
+Step 1
+
+Compute batch mean
+
+```
+μ
+```
+
+Step 2
+
+Compute batch variance
+
+```
+σ²
+```
+
+Step 3
+
+Normalize
+
+```
+Mean = 0
+
+Standard Deviation = 1
+```
+
+Step 4
+
+Scale
+
+```
+γ × normalized_value
+```
+
+Step 5
+
+Shift
+
+```
++ β
+```
+
+Final Output
+
+```
+Output
+
+=
+
+γ × normalized_value
+
++
+
+β
+```
+
+---
+
+# Why Gamma (γ) and Beta (β)?
+
+If every layer always produced outputs with
+
+```
+Mean = 0
+
+Standard Deviation = 1
+```
+
+the network would lose flexibility.
+
+Gamma and Beta allow the network to learn the most useful output distribution.
+
+- Gamma controls the scale.
+- Beta controls the shift.
+
+Both are trainable parameters.
+
+---
+
+# Trainable Parameters of Batch Normalization
+
+For every feature, Batch Normalization stores
+
+- Gamma (γ)
+- Beta (β)
+- Moving Mean
+- Moving Variance
+
+Therefore
+
+```
+Parameters
+
+=
+
+4 × Number of Features
+```
+
+For
+
+```
+BatchNormalization(128)
+```
+
+```
+128 × 4
+
+=
+
+512
+```
+
+For
+
+```
+BatchNormalization(64)
+```
+
+```
+64 × 4
+
+=
+
+256
+```
+
+Among these,
+
+- Gamma and Beta are trainable.
+- Moving Mean and Moving Variance are non-trainable.
+
+---
+
+# Complete Architecture
+
+```
+Input (28×28)
+
+↓
+
+Flatten
+
+↓
+
+Dense(128)
+
+↓
+
+Batch Normalization
+
+↓
+
+ReLU
+
+↓
+
+Dense(64)
+
+↓
+
+Batch Normalization
+
+↓
+
+ReLU
+
+↓
+
+Dense(10)
+
+↓
+
+Softmax
+
+↓
+
+Prediction
+```
+
+---
+
+# Key Takeaways
+
+- ReLU introduces non-linearity.
+- Softmax converts logits into probabilities.
+- Dense layers contain trainable weights and biases.
+- Parameter calculation follows the formula:
+
+```
+(Input Features × Neurons) + Biases
+```
+
+- Batch Normalization stabilizes training.
+- Gamma and Beta are learnable parameters.
+- Moving Mean and Moving Variance are used during inference.
+- The complete FCNN contains **109,386 trainable parameters**.
 
 - FCNN is one of the simplest neural network architectures.
 - Every neuron is connected to every neuron in the next layer.
