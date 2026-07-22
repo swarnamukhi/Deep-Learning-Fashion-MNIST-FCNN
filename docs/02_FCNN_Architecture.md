@@ -1267,3 +1267,393 @@ Prediction
 - Dense layers learn patterns by adjusting weights and biases.
 - Every neuron computes a weighted sum followed by an activation function.
 - Learning happens only inside the Dense layers.
+
+---
+
+# TensorFlow/Keras Implementation
+
+The following code implements the Fully Connected Neural Network (FCNN) used in this project.
+
+```python
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Flatten, Dense, BatchNormalization, Activation
+
+model = Sequential([
+    Flatten(input_shape=(28, 28)),
+
+    Dense(128),
+    BatchNormalization(),
+    Activation("relu"),
+
+    Dense(64),
+    BatchNormalization(),
+    Activation("relu"),
+
+    Dense(10, activation="softmax")
+])
+```
+
+---
+
+# Layer-by-Layer Explanation
+
+### Flatten Layer
+
+```python
+Flatten(input_shape=(28,28))
+```
+
+- Converts each **28 × 28** image into a **784-dimensional vector**.
+- Performs only reshaping.
+- Contains **0 trainable parameters**.
+
+```
+(28 × 28)
+
+↓
+
+784
+```
+
+---
+
+### First Dense Layer
+
+```python
+Dense(128)
+```
+
+- Creates **128 neurons**.
+- Every neuron receives all **784 input features**.
+- Learns meaningful patterns by updating weights and biases during training.
+
+Trainable Parameters
+
+```
+(784 × 128) + 128
+
+=
+
+100480
+```
+
+---
+
+### Batch Normalization
+
+```python
+BatchNormalization()
+```
+
+Normalizes the activations of the **current mini-batch** before they are passed to the next layer.
+
+Learns
+
+- Gamma (γ)
+- Beta (β)
+
+Maintains
+
+- Moving Mean
+- Moving Variance
+
+Benefits
+
+- Stable training
+- Faster convergence
+- Better gradient flow
+- Improved generalization
+
+---
+
+### ReLU Activation
+
+```python
+Activation("relu")
+```
+
+Applies
+
+```
+ReLU(x)=max(0,x)
+```
+
+Example
+
+```
+[-4,-2,0,5,8]
+
+↓
+
+[0,0,0,5,8]
+```
+
+Introduces non-linearity, enabling the network to learn complex decision boundaries.
+
+---
+
+### Second Dense Layer
+
+```python
+Dense(64)
+```
+
+- Receives the 128 outputs from the previous layer.
+- Learns higher-level feature representations.
+
+Trainable Parameters
+
+```
+(128 × 64) + 64
+
+=
+
+8256
+```
+
+---
+
+### Output Layer
+
+```python
+Dense(10, activation="softmax")
+```
+
+Creates one output neuron for each Fashion MNIST class.
+
+Output Shape
+
+```
+(batch_size,10)
+```
+
+Example
+
+```
+(32,10)
+```
+
+---
+
+### Softmax Activation
+
+Softmax converts the output scores (logits) into probabilities.
+
+Example
+
+```
+Before Softmax
+
+[3.2,0.5,1.8,4.1,...]
+
+↓
+
+After Softmax
+
+[0.02,
+0.01,
+0.05,
+0.71,
+...]
+```
+
+Properties
+
+- Values are between **0 and 1**
+- Total probability equals **1**
+- Highest probability becomes the predicted class
+
+---
+
+# Complete FCNN Workflow
+
+```
+Fashion MNIST Images
+
+↓
+
+Normalize Pixel Values
+
+↓
+
+Flatten
+
+↓
+
+Dense(128)
+
+↓
+
+Batch Normalization
+
+↓
+
+ReLU
+
+↓
+
+Dense(64)
+
+↓
+
+Batch Normalization
+
+↓
+
+ReLU
+
+↓
+
+Dense(10)
+
+↓
+
+Softmax
+
+↓
+
+Predicted Probabilities
+
+↓
+
+Loss Calculation
+
+↓
+
+Backpropagation
+
+↓
+
+Update Weights
+
+↓
+
+Next Mini-Batch
+```
+
+---
+
+# Interview Questions
+
+## 1. What is a Fully Connected Neural Network?
+
+A neural network in which every neuron is connected to every neuron in the next layer.
+
+---
+
+## 2. Why do we use Flatten?
+
+Flatten converts a two-dimensional image into a one-dimensional feature vector so that it can be processed by Dense layers.
+
+---
+
+## 3. Does Flatten learn anything?
+
+No.
+
+Flatten only reshapes the input tensor.
+
+It has **zero trainable parameters**.
+
+---
+
+## 4. Why is the Dense layer called Fully Connected?
+
+Because every neuron receives input from every neuron in the previous layer.
+
+---
+
+## 5. Why do we use ReLU?
+
+ReLU
+
+- Introduces non-linearity
+- Speeds up training
+- Reduces the vanishing gradient problem
+- Is computationally efficient
+
+---
+
+## 6. Why is Softmax used in the output layer?
+
+Softmax converts logits into probabilities, making it suitable for multiclass classification problems.
+
+---
+
+## 7. Why do we use Batch Normalization?
+
+Batch Normalization normalizes the activations of each mini-batch, resulting in faster, more stable, and more efficient training.
+
+---
+
+## 8. Does Batch Normalization normalize the next batch?
+
+No.
+
+Each mini-batch is normalized independently using its own Mean and Variance.
+
+---
+
+## 9. Which Batch Normalization parameters are trainable?
+
+- Gamma (γ)
+- Beta (β)
+
+---
+
+## 10. Which Batch Normalization parameters are not trainable?
+
+- Moving Mean
+- Moving Variance
+
+These are updated during training and later used during inference.
+
+---
+
+## 11. How many trainable parameters does this model have?
+
+```
+Dense(128)
+
+100480
+
++
+
+Dense(64)
+
+8256
+
++
+
+Dense(10)
+
+650
+
+=
+
+109386
+```
+
+---
+
+# Summary
+
+In this chapter, we designed a Fully Connected Neural Network (FCNN) to classify Fashion MNIST images.
+
+We explored the purpose and internal working of every layer, including Flatten, Dense, Batch Normalization, ReLU, and Softmax. We also manually calculated the trainable parameters of each Dense layer and understood how Batch Normalization stabilizes training by normalizing the activations of each mini-batch.
+
+Finally, we implemented the complete architecture using TensorFlow/Keras and reviewed the most common interview questions related to FCNNs.
+
+---
+
+# Key Takeaways
+
+- FCNN is a feedforward neural network where every neuron is connected to every neuron in the next layer.
+- Flatten converts a 2D image into a 1D vector without changing the data.
+- Dense layers learn patterns by updating weights and biases.
+- ReLU introduces non-linearity, allowing the model to learn complex relationships.
+- Softmax converts logits into a probability distribution for multiclass classification.
+- Batch Normalization normalizes the activations of each mini-batch to stabilize learning.
+- Gamma and Beta are trainable Batch Normalization parameters.
+- Moving Mean and Moving Variance are maintained during training and used during inference.
+- The FCNN used in this project contains **109,386 trainable parameters**.
